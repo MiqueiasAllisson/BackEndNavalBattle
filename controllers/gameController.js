@@ -13,12 +13,12 @@ const initializeGame = (req, res) => {
     return res.status(400).json({ error: 'Jogo já existe para esta sala.' });
   }
 
-/*   const board = createBoard(6, 6);
+  const board = createBoard(6, 6);
   placeShips(board);
 
-  games[roomId] = { board, players: [] }; */
+  games[roomId] = { board, players: [] };
 
-  res.status(200).json({ message: 'Jogo inicializado com sucesso.'/* , board */ });
+  res.status(200).json({ message: 'Jogo inicializado com sucesso.', board });
 };
 
 
