@@ -104,33 +104,35 @@ function BattleshipLobby() {
           >
             <h2 style={{ marginBottom: '1rem' }}>CRIAR SALA</h2>
             <label style={{ display: 'block', marginBottom: '0.5rem' }}>Código da Sala</label>
-            <input
-              type="text"
-              value={roomCodeCreate}
-              onChange={(e) => setRoomCodeCreate(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                marginBottom: '1rem',
-                borderRadius: '5px',
-                border: 'none',
-              }}
-            />
-            <button
-              onClick={handleCreateRoom}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                backgroundColor: '#316ba7',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '5px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-              }}
-            >
-              CRIAR
-            </button>
+			<input
+			type="text"
+			value={roomCodeCreate}
+			onChange={(e) => setRoomCodeCreate(e.target.value)}
+			style={{
+				width: '100%',
+				padding: '0.5rem',
+				marginBottom: '1rem',
+				borderRadius: '5px',
+				border: 'none',
+				boxSizing: 'border-box', 
+			}}
+			/>
+			<button
+			onClick={handleCreateRoom}
+			style={{
+				width: '100%',
+				padding: '0.75rem',
+				backgroundColor: '#316ba7',
+				color: '#fff',
+				border: 'none',
+				borderRadius: '5px',
+				fontWeight: 'bold',
+				cursor: 'pointer',
+				boxSizing: 'border-box',
+			}}
+			>
+			CRIAR
+			</button>
           </div>
 
           <div
@@ -145,31 +147,33 @@ function BattleshipLobby() {
             <h2 style={{ marginBottom: '1rem' }}>ENTRAR EM SALA</h2>
             <label style={{ display: 'block', marginBottom: '0.5rem' }}>Código da Sala</label>
             <input
-              type="text"
-              value={roomCodeJoin}
-              onChange={(e) => setRoomCodeJoin(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                marginBottom: '1rem',
-                borderRadius: '5px',
-                border: 'none',
-              }}
-            />
-            <button
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                backgroundColor: '#316ba7',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '5px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-              }}
-            >
-              ENTRAR
-            </button>
+			type="text"
+			value={roomCodeJoin}
+			onChange={(e) => setRoomCodeJoin(e.target.value)}
+			style={{
+				width: '100%',
+				padding: '0.5rem',
+				marginBottom: '1rem',
+				borderRadius: '5px',
+				border: 'none',
+				boxSizing: 'border-box',
+			}}
+			/>
+			<button
+			style={{
+				width: '100%',
+				padding: '0.75rem',
+				backgroundColor: '#316ba7',
+				color: '#fff',
+				border: 'none',
+				borderRadius: '5px',
+				fontWeight: 'bold',
+				cursor: 'pointer',
+				boxSizing: 'border-box', 
+			}}
+			>
+			ENTRAR
+			</button>
           </div>
         </div>
       </div>
