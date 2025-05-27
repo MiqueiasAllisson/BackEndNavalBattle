@@ -1,5 +1,5 @@
-const { initializePlayerBoard } = require('./gameLogic');
-const { createBoard } = require('./board');
+const { initializePlayerBoard } = require('../game/gameLogic');
+const { createBoard } = require('../game/board');
 const games = {};
 
 const initializeGame = (req, res) => {

@@ -12,6 +12,10 @@ const ships = [
 
 // Função para inicializar o tabuleiro e permitir que o jogador posicione os navios
 const initializePlayerBoard = (playerMoves) => {
+  if (!Array.isArray(playerMoves)) {
+    throw new Error("playerMoves precisa ser um array");
+  }
+
   const board = createBoard();
 
   playerMoves.forEach((move, index) => {
@@ -27,6 +31,7 @@ const initializePlayerBoard = (playerMoves) => {
 
   return board;
 };
+
 
 module.exports = {
   initializePlayerBoard,
