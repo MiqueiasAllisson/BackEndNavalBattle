@@ -50,11 +50,11 @@ const joinGame = (req, res) => {
 };
 
 const placeShips = (req, res) => {
-  const roomId = req.body.roomId;
-  const playerMoves = req.body.moves;
+  const { roomId, playerId } = req.params; // Extrai roomId e playerId da URL
+  const playerMoves = req.body.moves; // Extrai os movimentos do corpo da requisição
 
-  if (!roomId || !playerMoves) {
-    return res.status(400).json({ error: 'Room ID e moves são obrigatórios.' });
+  if (!roomId || !playerId || !playerMoves) {
+    return res.status(400).json({ error: 'Room ID, Player ID e moves são obrigatórios.' });
   }
 
   const game = games[roomId];
@@ -62,9 +62,6 @@ const placeShips = (req, res) => {
   if (!game) {
     return res.status(404).json({ error: 'Sala não encontrada.' });
   }
-
-  // Identifica o jogador que enviou a solicitação
-  const playerId = game.players[1].shipsPlaced ? 2 : 1;
 
   if (!game.players[playerId]) {
     return res.status(400).json({ error: 'Jogador inválido.' });
@@ -74,36 +71,36 @@ const placeShips = (req, res) => {
     return res.status(400).json({ error: 'Navios já foram posicionados para este jogador.' });
   }
 
-try {
-  const board = initializePlayerBoard(playerMoves);
-  game.players[playerId].board = board;
-  game.players[playerId].shipsPlaced = true;
+  try {
+    const board = initializePlayerBoard(playerMoves);
+    game.players[playerId].board = board;
+    game.players[playerId].shipsPlaced = true;
 
-  // Verifica se ambos os jogadores já posicionaram os navios
-  if (game.players[1].shipsPlaced && game.players[2] && game.players[2].shipsPlaced) {
-    game.readyToStart = true;
-    game.currentTurn = 1; // Define que o jogador 1 começa
+    // Verifica se ambos os jogadores já posicionaram os navios
+    if (game.players[1].shipsPlaced && game.players[2] && game.players[2].shipsPlaced) {
+      game.readyToStart = true;
+      game.currentTurn = 1; // Define que o jogador 1 começa
+    }
+
+    // Transformar o board em uma matriz 6x6
+    const matrixBoard = Array.from({ length: 6 }, () => Array(6).fill(0));
+    for (let i = 0; i < board.length; i++) {
+      const row = Math.floor(i / 6); // Linha calculada
+      const col = i % 6; // Coluna calculada
+      matrixBoard[row][col] = board[i]; // Preenche a matriz
+    }
+
+    res.status(200).json({
+      message: `Navios posicionados para o jogador ${playerId}.`,
+      board: matrixBoard,
+      readyToStart: game.readyToStart,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
-
-  // Transformar o board em uma matriz 6x6
-  const matrixBoard = Array.from({ length: 6 }, () => Array(6).fill(0)); // Matriz vazia 6x6
-  for (let i = 0; i < board.length; i++) {
-    const row = i % 6; // Linha calculada
-    const col = Math.floor(i / 6); // Coluna calculada
-    matrixBoard[row][col] = board[i]; // Preenche a matriz por colunas
-  }
-
-
-  res.status(200).json({
-    message: `Navios posicionados para o jogador ${playerId}.`,
-    board: matrixBoard, // Removido o nível extra
-    readyToStart: game.readyToStart,
-  });
-} catch (error) {
-  res.status(400).json({ error: error.message });
-}
-
 };
+
+
 
 const getGameState = (req, res) => {
   const roomId = req.params.roomId;
