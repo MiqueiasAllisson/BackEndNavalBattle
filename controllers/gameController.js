@@ -58,11 +58,20 @@ const placeShip = (req, res) => {
       placeShipOnBoard(player.board, row, col, ship.size, orientation, ship.id);
 
       player.placedShips.push(ship.id);
-      console.log(player.board)
+
+      // Verifica se todos os navios foram posicionados
+      const allShipsPlaced = player.placedShips.length === ships.length;
+
+      if (allShipsPlaced) {
+        player.ready = true; // Marca o jogador como pronto
+        checkGameStart(game); // Verifica se o jogo pode começar
+      }
+
       res.status(200).json({
         message: `Navio ${ship.name} posicionado com sucesso na posição (${row}, ${col}).`,
         board: player.board,
         placedShips: player.placedShips,
+        ready: player.ready || false,
       });
     } else {
       throw new Error(`Posição inválida para o navio ${ship.name}`);
@@ -71,6 +80,17 @@ const placeShip = (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+// Função para verificar se o jogo pode começar
+const checkGameStart = (game) => {
+  // Verifica se todos os jogadores estão prontos
+  const allPlayersReady = Object.values(game.players).every(player => player.ready);
+
+  if (allPlayersReady) {
+    game.gameStarted = true; // Marca o jogo como iniciado
+  }
+};
+
 
 // Função para remover um navio
 const removeShip = (req, res) => {
