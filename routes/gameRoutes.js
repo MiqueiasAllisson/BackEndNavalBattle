@@ -1,7 +1,10 @@
 const express = require('express');
 
-const { initializeGame, getGameState, placeShip, joinGame } = 
+const { placeShip } = 
 require('../controllers/gameController');
+
+const { initializeGame, getGameState, joinGame } = 
+require('../controllers/lobbyGame');
 
 
 const router = express.Router();
