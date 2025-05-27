@@ -1,14 +1,9 @@
 const { createBoard, isValidPlacement, placeShipOnBoard } = require('./board');
+const { ships } = require('./ships');
+
 
 // Configuração inicial dos navios
-const ships = [
-  { id: 1, name: 'Submarino', size: 1 },
-  { id: 2, name: 'Submarino', size: 1 },
-  { id: 3, name: 'Submarino', size: 1 },
-  { id: 4, name: 'Torpedeiro', size: 2 },
-  { id: 5, name: 'Torpedeiro', size: 2 },
-  { id: 6, name: 'Porta-avião', size: 3 },
-];
+
 
 // Função para inicializar o tabuleiro e permitir que o jogador posicione os navios
 const initializePlayerBoard = (playerMoves) => {

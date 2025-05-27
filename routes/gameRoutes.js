@@ -1,6 +1,6 @@
 const express = require('express');
 
-const { initializeGame, getGameState, placeShips, joinGame } = 
+const { initializeGame, getGameState, placeShip, joinGame } = 
 require('../controllers/gameController');
 
 
@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post('/initialize', initializeGame);
 router.post('/joinGame', joinGame);
-router.post('/:roomId/player/:playerId/placeShips', placeShips);
+router.post('/:roomId/player/:playerId/placeShips', placeShip);
 
 router.get ('/:roomId', getGameState);
 
