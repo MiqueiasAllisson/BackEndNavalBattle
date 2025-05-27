@@ -1,0 +1,205 @@
+.body-game {
+  background-color: #0f172a;
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.game-container {
+  display: flex;
+  padding: 2rem;
+  background-color: #0f172a;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  gap: 3rem;
+  max-width: 1100px; /* Aumentado de 900px para 1100px */
+  width: 95%; /* Um pouco mais de largura */
+  flex-wrap: wrap; /* para telas pequenas */
+  justify-content: center;
+}
+
+/* Linhas da grid */
+.grid-row, .header-row {
+  display: flex;
+}
+
+/* Células do cabeçalho (A, B, C, etc) e numéricas (1, 2, 3, etc) */
+.header-cell {
+  width: 48px; /* aumentei de 40px para 48px para mais espaço */
+  height: 48px;
+  text-align: center;
+  font-weight: 700;
+  line-height: 48px;
+  user-select: none;
+  color: #93c5fd; /* azul claro para melhor contraste */
+}
+
+/* Célula vazia no canto superior esquerdo */
+.empty-cell {
+  width: 48px; /* também aumentado para manter alinhamento */
+  height: 48px;
+}
+
+/* Células do grid onde o navio pode ser colocado */
+.cell {
+  width: 48px; /* maior para melhor clique e visual */
+  height: 48px;
+  border: 1px solid #4b5563; /* cinza escuro */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0c4a6e; /* azul escuro */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+  font-size: 1.7rem; /* um pouco maior para melhor visual */
+  user-select: none;
+}
+
+/* Navio colocado na célula */
+.cell.selected {
+  background-color: #16a34a; /* verde */
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+/* Hover nas células vazias (só se estiver selecionando um navio) */
+.cell:hover:not(.selected) {
+  background-color: #2563eb; /* azul hover */
+  transform: scale(1.1);
+}
+
+/* Sidebar */
+.sidebar {
+  margin-left: 2rem; /* leve aumento para mais espaço */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-start;
+  min-width: 200px; /* aumentado de 160px para 200px */
+  max-width: 320px; /* aumentado de 250px para 320px */
+}
+
+/* Label simples */
+.label {
+  font-size: 0.9rem; /* leve aumento */
+  color: #9ca3af; /* cinza claro */
+}
+
+/* Subtítulo */
+.subtitle {
+  font-size: 1.25rem; /* aumento para melhor destaque */
+  font-weight: 700;
+  color: #f9fafb;
+}
+
+/* Quantidade restante de navios */
+.quantity {
+  font-size: 1.1rem; /* aumento leve */
+  font-weight: 600;
+  color: #d1d5db; /* cinza médio */
+}
+
+/* Botão para os navios (ícones) */
+.ship {
+  width: 160px; /* aumento de 128px para 160px */
+  height: 44px; /* leve aumento */
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem; /* aumento para combinar com o tamanho */
+  background-color: #4b5563; /* cinza escuro */
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  user-select: none;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
+}
+
+/* Quando o navio está selecionado */
+.ship.selected-ship {
+  background-color: #16a34a; /* verde */
+  box-shadow: 0 0 10px #22c55e;
+  transform: scale(1.05);
+}
+
+/* Quando o navio está desabilitado (já usou todos) */
+.ship.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: #374151;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Botão de remoção da seleção */
+.remove-button {
+  width: 100%;
+  background-color: #1f2937;
+  color: white;
+  padding: 0.7rem 0; /* aumento leve */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  user-select: none;
+}
+
+.remove-button:hover {
+  background-color: #374151;
+}
+
+/* Botão de orientação */
+.sidebar > div:first-child button {
+  background-color: #2563eb;
+  border: none;
+  color: white;
+  padding: 0.6rem 1.2rem; /* um pouco maior */
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  user-select: none;
+}
+
+.sidebar > div:first-child button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Instruções */
+.sidebar p {
+  margin: 0.3rem 0; /* leve aumento */
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+/* Ajuste responsivo simples */
+@media (max-width: 700px) {
+  .game-container {
+    flex-direction: column;
+    align-items: center;
+    max-width: 95%; /* garantir que fique dentro da tela */
+  }
+  .sidebar {
+    margin-left: 0;
+    margin-top: 1rem;
+    width: 100%;
+    max-width: none;
+    align-items: center;
+    text-align: center;
+    min-width: auto; /* resetar min-width */
+    max-width: 100%; /* resetar max-width */
+  }
+  .ship {
+    width: 100px; /* aumento leve para telas pequenas */
+    height: 44px;
+    font-size: 1.5rem;
+  }
+  .remove-button {
+    width: 90%;
+  }
+}
