@@ -74,24 +74,35 @@ const placeShips = (req, res) => {
     return res.status(400).json({ error: 'Navios já foram posicionados para este jogador.' });
   }
 
-  try {
-    const board = initializePlayerBoard(playerMoves);
-    game.players[playerId].board = board;
-    game.players[playerId].shipsPlaced = true;
+try {
+  const board = initializePlayerBoard(playerMoves);
+  game.players[playerId].board = board;
+  game.players[playerId].shipsPlaced = true;
 
-    // Verifica se ambos os jogadores já posicionaram os navios
-    if (game.players[1].shipsPlaced && game.players[2] && game.players[2].shipsPlaced) {
-      game.readyToStart = true;
-      game.currentTurn = 1; // Define que o jogador 1 começa
-    }
-
-    res.status(200).json({
-      message: `Navios posicionados para o jogador ${playerId}.`,
-      readyToStart: game.readyToStart,
-    });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+  // Verifica se ambos os jogadores já posicionaram os navios
+  if (game.players[1].shipsPlaced && game.players[2] && game.players[2].shipsPlaced) {
+    game.readyToStart = true;
+    game.currentTurn = 1; // Define que o jogador 1 começa
   }
+
+  // Transformar o board em uma matriz 6x6
+  const matrixBoard = Array.from({ length: 6 }, () => Array(6).fill(0)); // Matriz vazia 6x6
+  for (let i = 0; i < board.length; i++) {
+    const row = i % 6; // Linha calculada
+    const col = Math.floor(i / 6); // Coluna calculada
+    matrixBoard[row][col] = board[i]; // Preenche a matriz por colunas
+  }
+
+
+  res.status(200).json({
+    message: `Navios posicionados para o jogador ${playerId}.`,
+    board: matrixBoard, // Removido o nível extra
+    readyToStart: game.readyToStart,
+  });
+} catch (error) {
+  res.status(400).json({ error: error.message });
+}
+
 };
 
 const getGameState = (req, res) => {
