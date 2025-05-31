@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function BattleshipLobby() {
   const [roomCodeCreate, setRoomCodeCreate] = useState('');
@@ -9,42 +10,56 @@ function BattleshipLobby() {
 
   const navigate = useNavigate();
 
-  const handleCreateRoom = async () => {
-    if (!roomCodeCreate) {
-      setMessage('Por favor, insira um código para a sala');
-      return;
-    }
+const handleCreateRoom = async () => {
+  if (!roomCodeCreate) {
+    setMessage('Por favor, insira um código para a sala');
+    return;
+  }
 
-    try {
-      const response = await fetch('http://localhost:3000/api/game/initialize', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ roomId: roomCodeCreate }),
-      });
+  try {
+    const response = await axios.post('http://localhost:3000/api/game/initialize', {
+      roomId: roomCodeCreate,
+    });
 
-      if (!response.ok) {
-        throw new Error('Erro ao criar a sala');
-      }
-
-      setRoomCodeJoin(roomCodeCreate); // opcional: preenche o campo de entrada com o código criado
+    if (response.status === 200) {
+      setMessage(response.data.message);
+      navigate('/game', { state: { roomId: roomCodeCreate, playerId: response.data.playerId } });
       setRoomCreated(true);
-      setMessage(`Sala ${roomCodeCreate} criada com sucesso!`);
-    } catch (error) {
-      setMessage(error.message);
     }
-  };
+  } catch (error) {
+    if (error.response) {
+      setMessage(error.response.data.error);
+    } else {
+      setMessage('Erro ao conectar ao servidor.');
+    }
+  }
+};
 
-  const handleJoinRoom = () => {
+
+  const handleJoinRoom = async () => {
     if (!roomCodeJoin) {
       setMessage('Por favor, insira o código da sala para entrar');
       return;
     }
 
-    navigate('/game', { state: { roomId: roomCodeJoin } });
-  };
+    try {
+      const response = await axios.post('http://localhost:3000/api/game/joinGame', {
+        roomId: roomCodeJoin,
+      });
 
+      if (response.status === 200) {
+        setMessage(response.data.message);
+        navigate('/game', { state: { roomId: roomCodeJoin, playerId: response.data.playerId } });
+      }
+    } catch (error) {
+      if (error.response) {
+        setMessage(error.response.data.error);
+      } else {
+        setMessage('Erro ao conectar ao servidor.');
+      }
+    }
+  };
+  
   return (
     <div
       style={{
