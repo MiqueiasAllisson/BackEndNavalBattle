@@ -2,14 +2,9 @@ const { ships } = require('../game/ships');
 const { createBoard, placeShipOnBoard, isValidPlacement } = require('../game/board');
 const games = {};
 
-
-
-
 const getShips = (req, res) => {
-  res.json(ships); 
+  res.json(ships);
 };
-
-
 
 // Função para posicionar um navio
 const placeShip = (req, res) => {
@@ -21,13 +16,11 @@ const placeShip = (req, res) => {
   }
 
   const game = games[roomId];
-
   if (!game) {
     return res.status(404).json({ error: 'Sala não encontrada.' });
   }
 
   const player = game.players[playerId];
-
   if (!player) {
     return res.status(400).json({ error: 'Jogador inválido.' });
   }
@@ -36,43 +29,38 @@ const placeShip = (req, res) => {
     player.board = createBoard();
   }
 
-  // Garante que `placedShips` esteja inicializado como um array vazio
   if (!player.placedShips) {
     player.placedShips = [];
   }
 
-  const ship = ships.find(s => s.id === shipId);
+  if (!player.shipsRemaining) {
+    player.shipsRemaining = ships.reduce((acc, ship) => {
+      acc[ship.id] = ship.maxAllowed;
+      return acc;
+    }, {});
+  }
 
+  const ship = ships.find((s) => s.id === shipId);
   if (!ship) {
     return res.status(400).json({ error: 'Navio inválido.' });
   }
 
-  // Verifica se o jogador já usou a quantidade máxima permitida do navio
-  const placedCount = player.placedShips.filter(id => id === shipId).length;
-  if (placedCount >= ship.maxAllowed) {
+  if (player.shipsRemaining[shipId] <= 0) {
     return res.status(400).json({ error: `Você já posicionou o número máximo permitido de ${ship.name}.` });
   }
 
-  // Tenta posicionar o navio no tabuleiro
   try {
     if (isValidPlacement(player.board, row, col, ship.size, orientation)) {
-      placeShipOnBoard(player.board, row, col, ship.size, orientation, ship.id);
+      placeShipOnBoard(player.board, row, col, ship.size, orientation, shipId);
 
-      player.placedShips.push(ship.id);
-
-      // Verifica se todos os navios foram posicionados
-      const allShipsPlaced = player.placedShips.length === ships.length;
-
-      if (allShipsPlaced) {
-        player.ready = true; // Marca o jogador como pronto
-        checkGameStart(game); // Verifica se o jogo pode começar
-      }
+      player.placedShips.push({ id: shipId, row, col, orientation, size: ship.size });
+      player.shipsRemaining[shipId] -= 1;
 
       res.status(200).json({
         message: `Navio ${ship.name} posicionado com sucesso na posição (${row}, ${col}).`,
         board: player.board,
         placedShips: player.placedShips,
-        ready: player.ready || false,
+        shipsRemaining: player.shipsRemaining,
       });
     } else {
       throw new Error(`Posição inválida para o navio ${ship.name}`);
@@ -81,17 +69,6 @@ const placeShip = (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
-// Função para verificar se o jogo pode começar
-const checkGameStart = (game) => {
-  // Verifica se todos os jogadores estão prontos
-  const allPlayersReady = Object.values(game.players).every(player => player.ready);
-
-  if (allPlayersReady) {
-    game.gameStarted = true; // Marca o jogo como iniciado
-  }
-};
-
 
 // Função para remover um navio
 const removeShip = (req, res) => {
@@ -103,13 +80,11 @@ const removeShip = (req, res) => {
   }
 
   const game = games[roomId];
-
   if (!game) {
     return res.status(404).json({ error: 'Sala não encontrada.' });
   }
 
   const player = game.players[playerId];
-
   if (!player) {
     return res.status(400).json({ error: 'Jogador inválido.' });
   }
@@ -118,42 +93,48 @@ const removeShip = (req, res) => {
     return res.status(400).json({ error: 'O tabuleiro do jogador não foi inicializado.' });
   }
 
-  // Verifica se há um navio na posição fornecida
   const shipId = player.board[row][col];
   if (!shipId || shipId === 0) {
     return res.status(400).json({ error: 'Nenhum navio encontrado na posição fornecida.' });
   }
 
-  // Encontra o navio correspondente
-  const ship = ships.find(s => s.id === shipId);
-  if (!ship) {
-    return res.status(400).json({ error: 'Navio inválido encontrado na posição fornecida.' });
+  // Encontra o navio específico que está sendo removido
+  const shipToRemove = player.placedShips.find(
+    (ship) =>
+      ship.id === shipId &&
+      row >= ship.row &&
+      row < ship.row + (ship.orientation === 'V' ? ship.size : 1) &&
+      col >= ship.col &&
+      col < ship.col + (ship.orientation === 'H' ? ship.size : 1)
+  );
+
+  if (!shipToRemove) {
+    return res.status(400).json({ error: 'Navio não encontrado na posição fornecida.' });
   }
 
-  // Remove o navio do tabuleiro
-  for (let r = 0; r < player.board.length; r++) {
-    for (let c = 0; c < player.board[r].length; c++) {
-      if (player.board[r][c] === shipId) {
-        player.board[r][c] = 0; // Limpa a posição no tabuleiro
-      }
+  // Remove apenas as células ocupadas pelo navio específico
+  for (let i = 0; i < shipToRemove.size; i++) {
+    const r = shipToRemove.orientation === 'V' ? shipToRemove.row + i : shipToRemove.row;
+    const c = shipToRemove.orientation === 'H' ? shipToRemove.col + i : shipToRemove.col;
+
+    if (r >= 0 && r < player.board.length && c >= 0 && c < player.board[0].length) {
+      player.board[r][c] = 0;
     }
   }
 
   // Remove o navio da lista de navios posicionados
-  const shipIndex = player.placedShips.indexOf(shipId);
-  if (shipIndex > -1) {
-    player.placedShips.splice(shipIndex, 1);
-  }
+  player.placedShips = player.placedShips.filter((ship) => ship !== shipToRemove);
 
-  console.log(player.board)
+  // Incrementa o número de navios restantes
+  player.shipsRemaining[shipId] += 1;
 
   res.status(200).json({
-    message: `Navio ${ship.name} removido com sucesso da posição (${row}, ${col}).`,
+    message: `Navio removido com sucesso da posição (${row}, ${col}).`,
     board: player.board,
     placedShips: player.placedShips,
+    shipsRemaining: player.shipsRemaining,
   });
 };
 
 
-
-module.exports = {  placeShip, games, removeShip, getShips };
+module.exports = { placeShip, games, removeShip, getShips };

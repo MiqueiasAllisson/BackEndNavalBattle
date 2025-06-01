@@ -1,5 +1,5 @@
 const { createBoard } = require('../game/board');
-const {games} = require('./gameController')
+const {games} = require('./initialGameController')
 
 const initializeGame = (req, res) => {
   const roomId = req.body.roomId;

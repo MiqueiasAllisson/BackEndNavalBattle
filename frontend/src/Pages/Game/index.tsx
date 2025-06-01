@@ -1,239 +1,176 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './game.css';
 
-const columns = ['A', 'B', 'C', 'D', 'E', 'F'];  
-const rows = [1, 2, 3, 4, 5, 6];  
+const GamePage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-const ships = [
-  { id: 'submarine', icon: '🚢', size: 2, maxCount: 3 },
-  { id: 'rocket', icon: '🚀', size: 2, maxCount: 2 },
-  { id: 'cruise', icon: '🛳️', size: 3, maxCount: 1 },
-];
+  const { roomId, playerId } = location.state || {};
 
-const getColumnIndex = (col: string) => columns.indexOf(col);
+  const [selectedShip, setSelectedShip] = useState(null);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [orientation, setOrientation] = useState('H');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [placedShips, setPlacedShips] = useState([]);
+  const [board, setBoard] = useState(createEmptyBoard(6, 6)); // Inicializa o tabuleiro vazio
+  const [shipsRemaining, setShipsRemaining] = useState({
+    1: 3, // Submarino
+    2: 2, // Torpedeiro
+    3: 1, // Porta-avião
+  });
 
-const getShipCells = (
-  startCol: string,
-  startRow: number,
-  size: number,
-  orientation: 'horizontal' | 'vertical'
-): string[] => {
-  const startIndex = getColumnIndex(startCol);
-  if (startIndex === -1) return [];
-
-  if (orientation === 'horizontal') {
-    if (startIndex + size > columns.length) return [];
-    return columns
-      .slice(startIndex, startIndex + size)
-      .map((col) => `${col}${startRow}`);
-  } else {
-    if (startRow + size - 1 > rows[rows.length - 1]) return [];
-    return Array.from({ length: size }).map((_, i) => `${startCol}${startRow + i}`);
+  // Função para criar um tabuleiro vazio (com arrays independentes)
+  function createEmptyBoard(rows, cols) {
+    return Array.from({ length: rows }, () => Array(cols).fill(0));
   }
-};
 
-export default function GridGame() {
-  const [placedShips, setPlacedShips] = useState<{ [cellId: string]: string }>({});
-  const [selectedShip, setSelectedShip] = useState<string | null>(null);
-  const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
-
-  const countShips = (shipId: string) => {
-    return Object.values(placedShips).filter((id) => id === shipId).length;
-  };
-
-  const countFullShips = (shipId: string) => {
-    const ship = ships.find((s) => s.id === shipId);
-    if (!ship) return 0;
-    const totalCells = countShips(shipId);
-    return Math.floor(totalCells / ship.size);
-  };
-
-  const canPlaceShip = (cells: string[]) => {
-    return cells.every((cell) => !(cell in placedShips));
-  };
-
-  const handleCellClick = (cellId: string) => {
-    if (!selectedShip) return;
-
-    const ship = ships.find((s) => s.id === selectedShip);
-    if (!ship) return;
-
-    const row = Number(cellId.slice(1));
-    const col = cellId[0];
-
-    const shipCells = getShipCells(col, row, ship.size, orientation);
-    if (shipCells.length === 0) {
-      alert('Não cabe o navio nessa posição.');
-      return;
+  useEffect(() => {
+    if (!roomId || !playerId) {
+      navigate('/');
     }
+  }, [roomId, playerId, navigate]);
 
-    if (countFullShips(ship.id) >= ship.maxCount) {
-      alert(
-        `Você já colocou todos os ${ship.maxCount} ${
-          ship.id === 'submarine'
-            ? 'submarinos'
-            : ship.id === 'rocket'
-            ? 'torpedeiros'
-            : 'porta-avião'
-        }!`
-      );
-      return;
-    }
-
-    if (!canPlaceShip(shipCells)) {
-      alert('Tem navio na área selecionada!');
-      return;
-    }
-
-    setPlacedShips((prev) => {
-      const copy = { ...prev };
-      shipCells.forEach((cell) => {
-        copy[cell] = ship.id;
-      });
-      return copy;
-    });
-  };
-
-  const handleRemoveShipAtCell = (cellId: string) => {
-    if (!(cellId in placedShips)) return;
-
-    const shipId = placedShips[cellId];
-    const ship = ships.find((s) => s.id === shipId);
-    if (!ship) return;
-
-    let row = Number(cellId.slice(1));
-    let colIndex = getColumnIndex(cellId[0]);
-    const shipCells = [cellId];
-
-    for (let i = colIndex - 1; i >= 0; i--) {
-      const leftCell = `${columns[i]}${row}`;
-      if (placedShips[leftCell] === shipId) shipCells.push(leftCell);
-      else break;
-    }
-    for (let i = colIndex + 1; i < columns.length; i++) {
-      const rightCell = `${columns[i]}${row}`;
-      if (placedShips[rightCell] === shipId) shipCells.push(rightCell);
-      else break;
-    }
-    for (let r = row - 1; r >= rows[0]; r--) {
-      const upCell = `${cellId[0]}${r}`;
-      if (placedShips[upCell] === shipId) shipCells.push(upCell);
-      else break;
-    }
-    for (let r = row + 1; r <= rows[rows.length - 1]; r++) {
-      const downCell = `${cellId[0]}${r}`;
-      if (placedShips[downCell] === shipId) shipCells.push(downCell);
-      else break;
-    }
-
-    setPlacedShips((prev) => {
-      const copy = { ...prev };
-      shipCells.forEach((cell) => delete copy[cell]);
-      return copy;
-    });
-  };
-
-  const renderCell = (col: string, row: number) => {
-    const id = `${col}${row}`;
-    const shipId = placedShips[id];
-    const ship = ships.find((s) => s.id === shipId);
-
-    return (
-      <div
-        key={id}
-        className={`cell ${shipId ? 'selected' : ''}`}
-        onClick={() => {
-          if (selectedShip) {
-            handleCellClick(id);
-          } else if (shipId) {
-            handleRemoveShipAtCell(id);
+  const handleCellClick = async (row, col) => {
+    if (isRemoving) {
+      try {
+        const response = await axios.delete(
+          `http://localhost:3000/api/game/${roomId}/player/${playerId}/removeShip`,
+          {
+            data: { row, col }, // Envia as coordenadas no corpo da requisição
           }
-        }}
-        style={{ cursor: selectedShip ? 'pointer' : shipId ? 'pointer' : 'default' }}
-        title={ship ? `${ship.id.toUpperCase()}` : undefined}
-      >
-        {ship ? ship.icon : ''}
-      </div>
-    );
+        );
+
+        const { message, board: updatedBoard, placedShips, shipsRemaining } = response.data;
+
+        // Atualiza o estado do tabuleiro e dos navios restantes com base na resposta do backend
+        setBoard(updatedBoard);
+        setPlacedShips(placedShips);
+        setShipsRemaining(shipsRemaining);
+
+        setSuccess(message); // Exibe a mensagem de sucesso
+        setError('');
+      } catch (err) {
+        if (err.response && err.response.data && err.response.data.error) {
+          setError(err.response.data.error); // Exibe a mensagem de erro
+        } else {
+          setError('Erro ao remover o navio.');
+        }
+        setSuccess('');
+      }
+      return;
+    }
+
+    if (!selectedShip) {
+      setError('Selecione um navio antes de posicioná-lo.');
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/api/game/${roomId}/player/${playerId}/placeShips`,
+        {
+          row,
+          col,
+          orientation,
+          shipId: selectedShip,
+        }
+      );
+
+      const { message, board: updatedBoard, placedShips, shipsRemaining } = response.data;
+
+      setPlacedShips(placedShips);
+      setBoard(updatedBoard);
+      setShipsRemaining(shipsRemaining);
+      setSuccess(message);
+      setError('');
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else {
+        setError('Erro ao posicionar o navio. Tente novamente.');
+      }
+      setSuccess('');
+    }
+  };
+
+  const handleShipSelection = (shipId) => {
+    setSelectedShip(shipId);
+    setIsRemoving(false);
+    setError('');
+    setSuccess('');
+  };
+
+  const handleRemoveMode = () => {
+    setSelectedShip(null);
+    setIsRemoving((prev) => !prev);
+    setError('');
+    setSuccess('');
+  };
+
+  const handleOrientationChange = () => {
+    setOrientation((prev) => (prev === 'H' ? 'V' : 'H'));
   };
 
   return (
-	<div className='body-game '>
-<div className="game-container">
-      {/* Grid */}
-      <div>
-        <div className="header-row">
-          <div className="empty-cell" />
-          {columns.map((col) => (
-            <div key={col} className="header-cell">
-              {col}
-            </div>
-          ))}
+    <div className="body-game">
+      <div className="game-container">
+        <div className="header">
+          <h1>Batalha Naval - Sala: {roomId}</h1>
+          <p>Jogador: {playerId}</p>
         </div>
-        {rows.map((row) => (
-          <div key={row} className="grid-row">
-            <div className="header-cell">{row}</div>
-            {columns.map((col) => renderCell(col, row))}
+        <div className="sidebar">
+          <h2>Selecione um navio:</h2>
+          <div className="ship-list">
+            {Object.keys(shipsRemaining).map((shipId) => (
+              <div
+                key={shipId}
+                className={`ship-item ${selectedShip === parseInt(shipId) ? 'selected' : ''}`}
+                onClick={() => handleShipSelection(parseInt(shipId))}
+              >
+                {shipId === '1' && 'Submarino'}
+                {shipId === '2' && 'Torpedeiro'}
+                {shipId === '3' && 'Porta-avião'} (Restantes: {shipsRemaining[shipId] || 0})
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Sidebar */}
-      <div className="sidebar">
-        <div style={{ marginBottom: 20 }}>
+          <h2>Orientação:</h2>
+          <button className="remove-button" onClick={handleOrientationChange}>
+            {orientation === 'H' ? 'Horizontal' : 'Vertical'}
+          </button>
+
           <button
-            onClick={() =>
-              setOrientation((o) => (o === 'horizontal' ? 'vertical' : 'horizontal'))
-            }
-            style={{ cursor: 'pointer' }}
+            className={`remove-button ${isRemoving ? 'selected' : ''}`}
+            onClick={handleRemoveMode}
           >
-            Orientação: {orientation.toUpperCase()} (clique para mudar)
+            Remover Navio
           </button>
         </div>
 
-        {ships.map((ship) => {
-          const placedCount = countFullShips(ship.id);
-          const remaining = ship.maxCount - placedCount;
-          const isSelected = selectedShip === ship.id;
-          const disabled = remaining <= 0;
-
-          return (
-            <div key={ship.id} style={{ marginBottom: 12 }}>
-              <div
-                className={`ship ${isSelected ? 'selected-ship' : disabled ? 'disabled' : ''}`}
-                onClick={() => !disabled && setSelectedShip(ship.id)}
-                style={{ cursor: disabled ? 'not-allowed' : 'pointer', fontSize: '1.5rem' }}
-                title={`${ship.id.toUpperCase()} (Tamanho: ${ship.size})`}
-              >
-                {ship.icon}
-              </div>
-              <div>
-                {ship.id.toUpperCase()}s restantes: {remaining}
-              </div>
-            </div>
-          );
-        })}
-
-        <button
-          className="remove-button"
-          onClick={() => setSelectedShip(null)}
-          style={{ marginTop: 20 }}
-        >
-          REMOVER SELEÇÃO
-        </button>
-
-        <div style={{ marginTop: 20, fontSize: 14 }}>
-          <p>
-            <b>Instruções:</b>
-          </p>
-          <p>- Clique no navio para selecioná-lo.</p>
-          <p>- Clique na célula para posicionar o navio na orientação selecionada.</p>
-          <p>- Para remover um navio, desmarque a seleção e clique na célula com navio.</p>
-          <p>- Use o botão para alternar a orientação horizontal/vertical.</p>
+        <div className="grid-container">
+          <h2>Tabuleiro:</h2>
+          {error && <div className="error-message">{error}</div>}
+          {success && <div style={{ color: 'green' }}>{success}</div>}
+          <div className="grid">
+            {board.map((rowArray, row) =>
+              rowArray.map((cell, col) => (
+                <div
+                  key={`${row}-${col}`}
+                  className={`cell ${cell !== 0 ? 'selected' : ''}`}
+                  onClick={() => handleCellClick(row, col)}
+                >
+                  {cell !== 0 ? '🚢' : ''}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
-	</div>
-    
   );
-}
+};
+
+export default GamePage;
