@@ -4,52 +4,30 @@ import axios from 'axios';
 
 function BattleshipLobby() {
   const [roomCodeCreate, setRoomCodeCreate] = useState('');
+  const [teamNameCreate, setTeamNameCreate] = useState(''); // Nome da equipe ao criar
   const [roomCodeJoin, setRoomCodeJoin] = useState('');
+  const [teamNameJoin, setTeamNameJoin] = useState(''); // Nome da equipe ao entrar
   const [message, setMessage] = useState('');
   const [roomCreated, setRoomCreated] = useState(false);
 
   const navigate = useNavigate();
 
-const handleCreateRoom = async () => {
-  if (!roomCodeCreate) {
-    setMessage('Por favor, insira um código para a sala');
-    return;
-  }
-
-  try {
-    const response = await axios.post('http://localhost:3000/api/game/initialize', {
-      roomId: roomCodeCreate,
-    });
-
-    if (response.status === 200) {
-      setMessage(response.data.message);
-      navigate('/game', { state: { roomId: roomCodeCreate, playerId: response.data.playerId } });
-      setRoomCreated(true);
-    }
-  } catch (error) {
-    if (error.response) {
-      setMessage(error.response.data.error);
-    } else {
-      setMessage('Erro ao conectar ao servidor.');
-    }
-  }
-};
-
-
-  const handleJoinRoom = async () => {
-    if (!roomCodeJoin) {
-      setMessage('Por favor, insira o código da sala para entrar');
+  const handleCreateRoom = async () => {
+    if (!roomCodeCreate || !teamNameCreate) {
+      setMessage('Por favor, insira o código da sala e o nome da equipe');
       return;
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/api/game/joinGame', {
-        roomId: roomCodeJoin,
+      const response = await axios.post('http://localhost:3000/api/game/initialize', {
+        roomId: roomCodeCreate,
+        nameTeam: teamNameCreate, // Envia o nome da equipe
       });
 
       if (response.status === 200) {
         setMessage(response.data.message);
-        navigate('/game', { state: { roomId: roomCodeJoin, playerId: response.data.playerId } });
+        navigate('/game', { state: { roomId: roomCodeCreate, playerId: response.data.playerId, nameTeam: teamNameCreate } });
+        setRoomCreated(true);
       }
     } catch (error) {
       if (error.response) {
@@ -59,7 +37,32 @@ const handleCreateRoom = async () => {
       }
     }
   };
-  
+
+  const handleJoinRoom = async () => {
+    if (!roomCodeJoin || !teamNameJoin) {
+      setMessage('Por favor, insira o código da sala e o nome da equipe');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:3000/api/game/joinGame', {
+        roomId: roomCodeJoin,
+        nameTeam: teamNameJoin, // Envia o nome da equipe
+      });
+
+      if (response.status === 200) {
+        setMessage(response.data.message);
+        navigate('/game', { state: { roomId: roomCodeJoin, playerId: response.data.playerId, nameTeam: teamNameJoin  } });
+      }
+    } catch (error) {
+      if (error.response) {
+        setMessage(error.response.data.error);
+      } else {
+        setMessage('Erro ao conectar ao servidor.');
+      }
+    }
+  };
+
   return (
     <div
       style={{
@@ -117,6 +120,7 @@ const handleCreateRoom = async () => {
           zIndex: 1,
         }}
       >
+        {/* Criar Sala */}
         <div
           style={{
             backgroundColor: '#153459',
@@ -132,6 +136,20 @@ const handleCreateRoom = async () => {
             type="text"
             value={roomCodeCreate}
             onChange={(e) => setRoomCodeCreate(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              marginBottom: '1rem',
+              borderRadius: '5px',
+              border: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+          <label style={{ display: 'block', marginBottom: '0.5rem' }}>Nome da Equipe</label>
+          <input
+            type="text"
+            value={teamNameCreate}
+            onChange={(e) => setTeamNameCreate(e.target.value)}
             style={{
               width: '100%',
               padding: '0.5rem',
@@ -159,6 +177,7 @@ const handleCreateRoom = async () => {
           </button>
         </div>
 
+        {/* Entrar em Sala */}
         <div
           style={{
             backgroundColor: '#153459',
@@ -183,6 +202,20 @@ const handleCreateRoom = async () => {
               boxSizing: 'border-box',
             }}
           />
+          <label style={{ display: 'block', marginBottom: '0.5rem' }}>Nome da Equipe</label>
+          <input
+            type="text"
+            value={teamNameJoin}
+            onChange={(e) => setTeamNameJoin(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              marginBottom: '1rem',
+              borderRadius: '5px',
+              border: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
           <button
             onClick={handleJoinRoom}
             style={{
@@ -196,7 +229,7 @@ const handleCreateRoom = async () => {
               cursor: 'pointer',
               boxSizing: 'border-box',
             }}
-            disabled={!roomCodeJoin}
+            disabled={!roomCodeJoin || !teamNameJoin}
           >
             ENTRAR
           </button>

@@ -4,9 +4,41 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  position: relative;
   user-select: none;
+  padding-top: 2rem;
+}
+
+.game-title {
+  font-size: 2rem;
+  color: #93c5fd;
+  margin-bottom: 1rem;
+}
+
+.player-card-small {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: #2563eb;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  text-align: left;
+  width: 200px;
+}
+
+.player-card-small h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.player-card-small p {
+  font-size: 0.875rem;
+  margin: 0.25rem 0;
 }
 
 .game-container {
@@ -22,22 +54,6 @@
   justify-content: center;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.header h1 {
-  font-size: 1.5rem;
-  color: #93c5fd;
-  margin-bottom: 0.5rem;
-}
-
-.header p {
-  font-size: 1rem;
-  color: #d1d5db;
-}
-
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -49,42 +65,7 @@
   width: 300px;
 }
 
-.sidebar h2 {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #93c5fd;
-  margin-bottom: 0.5rem;
-}
-
-.ship-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.ship-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  background-color: #2563eb;
-  color: white;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.ship-item:hover {
-  background-color: #1d4ed8;
-}
-
-.ship-item.selected {
-  background-color: #22c55e;
-  box-shadow: 0 0 10px #16a34a;
-}
-
+.orientation-button,
 .remove-button {
   background-color: #ef4444;
   color: white;
@@ -96,10 +77,12 @@
   transition: background-color 0.3s ease;
 }
 
+.orientation-button:hover,
 .remove-button:hover {
   background-color: #dc2626;
 }
 
+.orientation-button.selected,
 .remove-button.selected {
   background-color: #b91c1c;
   box-shadow: 0 0 10px #f87171;
@@ -156,22 +139,57 @@
   text-align: center;
 }
 
-@media (max-width: 700px) {
-  .game-container {
-    flex-direction: column;
-    align-items: center;
-  }
+.ship-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-  .sidebar {
-    width: 100%;
-  }
+.ship-item {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
 
-  .grid {
-    grid-template-columns: repeat(6, 36px);
-  }
+.ship-item:hover {
+  background-color: #1e40af;
+  transform: scale(1.05);
+}
 
-  .cell {
-    width: 36px;
-    height: 36px;
-  }
+.ship-item.selected {
+  background-color: #22c55e;
+  box-shadow: 0 0 10px #16a34a;
+}
+
+.ready-container {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.ready-button {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.ready-button.disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.waiting-message {
+  margin-top: 0.5rem;
+  color: #f59e0b;
+  font-size: 1rem;
 }

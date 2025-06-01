@@ -136,5 +136,51 @@ const removeShip = (req, res) => {
   });
 };
 
+// Atualizar o estado de "pronto" do jogador
+const setPlayerReady = (req, res) => {
+  const { roomId, playerId } = req.params;
 
-module.exports = { placeShip, games, removeShip, getShips };
+  // Verifica se os parâmetros foram fornecidos
+  if (!roomId || !playerId) {
+    return res.status(400).json({ error: 'Room ID e Player ID são obrigatórios.' });
+  }
+
+  // Verifica se a sala existe
+  const game = games[roomId];
+  if (!game) {
+    return res.status(404).json({ error: 'Sala não encontrada.' });
+  }
+
+  // Verifica se os jogadores existem na sala
+  if (!game.players || !game.players[playerId]) {
+    return res.status(400).json({ error: 'Jogador inválido ou não encontrado na sala.' });
+  }
+
+  const player = game.players[playerId];
+
+  // Verifica se o jogador posicionou todos os navios
+  if (!player.shipsRemaining) {
+    return res.status(400).json({ error: 'Os navios do jogador não foram inicializados.' });
+  }
+
+  const allShipsPlaced = Object.values(player.shipsRemaining).every((count) => count === 0);
+  if (!allShipsPlaced) {
+    return res.status(400).json({ error: 'Você deve posicionar todos os navios antes de ficar pronto.' });
+  }
+
+  // Atualiza o estado de prontidão do jogador
+  player.ready = true;
+
+  // Verifica se todos os jogadores estão prontos
+  const allPlayersReady = Object.values(game.players).every((p) => p.ready);
+
+  if (allPlayersReady) {
+    game.status = 'ready';
+    res.status(200).json({ message: 'Todos os jogadores estão prontos. O jogo pode começar!' });
+  } else {
+    res.status(200).json({ message: 'Você está pronto. Aguardando os outros jogadores.' });
+  }
+};
+
+
+module.exports = { placeShip, games, removeShip, getShips, setPlayerReady };

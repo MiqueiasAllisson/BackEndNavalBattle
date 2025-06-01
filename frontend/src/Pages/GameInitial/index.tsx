@@ -7,7 +7,7 @@ const GamePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { roomId, playerId } = location.state || {};
+  const { roomId, playerId, nameTeam } = location.state || {};
 
   const [selectedShip, setSelectedShip] = useState(null);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -15,14 +15,14 @@ const GamePage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [placedShips, setPlacedShips] = useState([]);
-  const [board, setBoard] = useState(createEmptyBoard(6, 6)); // Inicializa o tabuleiro vazio
+  const [board, setBoard] = useState(createEmptyBoard(6, 6));
   const [shipsRemaining, setShipsRemaining] = useState({
-    1: 3, // Submarino
-    2: 2, // Torpedeiro
-    3: 1, // Porta-avião
+    1: 3,
+    2: 2,
+    3: 1,
   });
+  const [isReady, setIsReady] = useState(false);
 
-  // Função para criar um tabuleiro vazio (com arrays independentes)
   function createEmptyBoard(rows, cols) {
     return Array.from({ length: rows }, () => Array(cols).fill(0));
   }
@@ -33,28 +33,33 @@ const GamePage = () => {
     }
   }, [roomId, playerId, navigate]);
 
+  // Verifica se todos os navios foram posicionados
+  useEffect(() => {
+    const allShipsPlaced = Object.values(shipsRemaining).every((count) => count === 0);
+    setIsReady(allShipsPlaced);
+  }, [shipsRemaining]);
+
   const handleCellClick = async (row, col) => {
     if (isRemoving) {
       try {
         const response = await axios.delete(
           `http://localhost:3000/api/game/${roomId}/player/${playerId}/removeShip`,
           {
-            data: { row, col }, // Envia as coordenadas no corpo da requisição
+            data: { row, col },
           }
         );
 
         const { message, board: updatedBoard, placedShips, shipsRemaining } = response.data;
 
-        // Atualiza o estado do tabuleiro e dos navios restantes com base na resposta do backend
         setBoard(updatedBoard);
         setPlacedShips(placedShips);
         setShipsRemaining(shipsRemaining);
 
-        setSuccess(message); // Exibe a mensagem de sucesso
+        setSuccess(message);
         setError('');
       } catch (err) {
-        if (err.response && err.response.data && err.response.data.error) {
-          setError(err.response.data.error); // Exibe a mensagem de erro
+        if (err.response?.data?.error) {
+          setError(err.response.data.error);
         } else {
           setError('Erro ao remover o navio.');
         }
@@ -87,7 +92,7 @@ const GamePage = () => {
       setSuccess(message);
       setError('');
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.error) {
+      if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
         setError('Erro ao posicionar o navio. Tente novamente.');
@@ -114,18 +119,40 @@ const GamePage = () => {
     setOrientation((prev) => (prev === 'H' ? 'V' : 'H'));
   };
 
+  const handleReady = async () => {
+    try {
+      await axios.post(
+        `http://localhost:3000/api/game/${roomId}/player/${playerId}/setPlayerReady`
+      );
+
+      // Redireciona para a página de "Aguardando o Jogador"
+      navigate('/waiting', { state: { roomId, playerId, nameTeam } });
+    } catch (err) {
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError('Erro ao definir o estado de pronto.');
+      }
+    }
+  };
+
   return (
     <div className="body-game">
+      <h1 className="game-title">Batalha Naval</h1>
+
+      <div className="player-card-small">
+        <h2>Jogador</h2>
+        <p><strong>Sala:</strong> {roomId}</p>
+        <p><strong>ID:</strong> {playerId}</p>
+        <p><strong>Equipe:</strong> {nameTeam || 'Não especificada'}</p>
+      </div>
+
       <div className="game-container">
-        <div className="header">
-          <h1>Batalha Naval - Sala: {roomId}</h1>
-          <p>Jogador: {playerId}</p>
-        </div>
         <div className="sidebar">
           <h2>Selecione um navio:</h2>
           <div className="ship-list">
             {Object.keys(shipsRemaining).map((shipId) => (
-              <div
+              <button
                 key={shipId}
                 className={`ship-item ${selectedShip === parseInt(shipId) ? 'selected' : ''}`}
                 onClick={() => handleShipSelection(parseInt(shipId))}
@@ -133,12 +160,12 @@ const GamePage = () => {
                 {shipId === '1' && 'Submarino'}
                 {shipId === '2' && 'Torpedeiro'}
                 {shipId === '3' && 'Porta-avião'} (Restantes: {shipsRemaining[shipId] || 0})
-              </div>
+              </button>
             ))}
           </div>
 
           <h2>Orientação:</h2>
-          <button className="remove-button" onClick={handleOrientationChange}>
+          <button className="orientation-button" onClick={handleOrientationChange}>
             {orientation === 'H' ? 'Horizontal' : 'Vertical'}
           </button>
 
@@ -167,6 +194,16 @@ const GamePage = () => {
               ))
             )}
           </div>
+        </div>
+
+        <div className="ready-container">
+          <button
+            className={`ready-button ${isReady ? '' : 'disabled'}`}
+            onClick={handleReady}
+            disabled={!isReady}
+          >
+            Pronto
+          </button>
         </div>
       </div>
     </div>
