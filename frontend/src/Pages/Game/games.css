@@ -1,0 +1,64 @@
+.battle-page-body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  text-align: center;
+}
+
+.battle-page-title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.battle-page-turn-indicator {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.battle-page-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 20px;
+  gap: 50px;
+}
+
+.battle-page-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 45%;
+}
+
+.battle-page-board-title {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.battle-page-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 40px); /* Ajuste o número de colunas conforme necessário */
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.battle-page-cell {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.battle-page-cell-hit {
+  background-color: #ff4d4d; /* Vermelho para indicar acertos */
+  color: white;
+}
+
+.battle-page-winner-message {
+  font-size: 1.8rem;
+  color: green;
+  margin-top: 20px;
+}

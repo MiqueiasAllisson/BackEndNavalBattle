@@ -58,22 +58,6 @@ const joinGame = (req, res) => {
 };
 
 
-const getGameState = (req, res) => {
-  const roomId = req.params.roomId;
 
-  if (!games[roomId]) {
-    return res.status(404).json({ error: 'Jogo não encontrado.' });
-  }
 
-  const game = games[roomId];
-  res.status(200).json({
-    players: {
-      1: { shipsPlaced: game.players[1].shipsPlaced },
-      2: game.players[2] ? { shipsPlaced: game.players[2].shipsPlaced } : null,
-    },
-    readyToStart: game.readyToStart,
-    currentTurn: game.currentTurn,
-  });
-};
-
-module.exports = { initializeGame, joinGame, getGameState };
+module.exports = { initializeGame, joinGame };
