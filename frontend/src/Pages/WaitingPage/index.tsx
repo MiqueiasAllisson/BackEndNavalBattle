@@ -55,6 +55,7 @@ useEffect(() => {
         <h2>Jogador</h2>
         <p><strong>Sala:</strong> {roomId}</p>
         <p><strong>ID:</strong> {playerId}</p>
+        <p><strong>Equipe:</strong> {nameTeam || 'Não especificada'}</p>
       </div>
 
       <div className="waiting-container">

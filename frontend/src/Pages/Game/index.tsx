@@ -17,7 +17,7 @@ const BattlePage = () => {
 
   useEffect(() => {
     if (!roomId || !playerId) {
-      navigate('/');
+      navigate('/lobby');
       return;
     }
 
@@ -68,7 +68,12 @@ const BattlePage = () => {
       // Atualiza o estado do jogo com os dados retornados
       setGameState((prevState) => ({
         ...prevState,
-        players: response.data.players,
+        players: {
+          ...prevState.players,
+          // Atualiza os tabuleiros com os dados mais recentes
+          player1: response.data.players[1],
+          player2: response.data.players[2],
+        },
         currentTurn: response.data.currentTurn,
         winner: response.data.winner,
       }));
@@ -88,7 +93,7 @@ const BattlePage = () => {
   if (winner) {
     return (
       <div className="battle-page-body">
-        <h1 className="battle-page-title">Batalha Naval</h1>
+        <h1 className="battle-page-title">Battle</h1>
         <h2 className="battle-page-winner-message">O vencedor é: {winner}</h2>
       </div>
     );
@@ -102,19 +107,28 @@ const BattlePage = () => {
     return (
       <div className="battle-page-grid">
         {board.map((rowArray, row) =>
-          rowArray.map((cell, col) => (
-            <div
-              key={`${row}-${col}`}
-              className={`battle-page-cell ${
-                hits?.some((hit) => hit.row === row && hit.col === col)
-                  ? 'battle-page-cell-hit'
-                  : ''
-              }`}
-              onClick={isClickable ? () => handleAttack(row, col) : undefined}
-            >
-              {hits?.some((hit) => hit.row === row && hit.col === col) ? '🔥' : ''}
-            </div>
-          ))
+          rowArray.map((cell, col) => {
+            const hit = hits?.find((hit) => hit.row === row && hit.col === col);
+            const isHit = hit?.status === 'hit'; // Acerto
+            const isMiss = hit?.status === 'miss'; // Erro
+
+            return (
+              <div
+                key={`${row}-${col}`}
+                className={`battle-page-cell ${
+                  isHit ? 'battle-page-cell-hit' : isMiss ? 'battle-page-cell-miss' : ''
+                }`}
+                onClick={
+                  isClickable && !hit ? () => handleAttack(row, col) : undefined
+                }
+                style={{
+                  backgroundColor: isHit ? 'green' : isMiss ? 'red' : '',
+                }}
+              >
+                {isHit ? '🚢' : isMiss ? '❌' : ''}
+              </div>
+            );
+          })
         )}
       </div>
     );
@@ -132,6 +146,11 @@ const BattlePage = () => {
         <div className="battle-page-board">
           <h2 className="battle-page-board-title">{players?.player1?.namePlayer || 'Jogador 1'}</h2>
           {renderBoard(players?.player1?.board, players?.player1?.hits)}
+        </div>
+
+        {/* VS no meio */}
+        <div className="battle-page-vs">
+          <h1 className="battle-page-vs-text">VS</h1>
         </div>
 
         {/* Tabuleiro do Jogador 2 */}
