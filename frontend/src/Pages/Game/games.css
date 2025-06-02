@@ -1,64 +1,112 @@
+/* games.css */
+
+/* Corpo da página */
 .battle-page-body {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  text-align: center;
-}
-
-.battle-page-title {
-  font-size: 2rem;
-  margin-bottom: 20px;
-}
-
-.battle-page-turn-indicator {
-  font-size: 1.2rem;
-  margin-bottom: 20px;
-}
-
-.battle-page-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-top: 20px;
-  gap: 50px;
-}
-
-.battle-page-board {
+  background-color: #0f172a;
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 45%;
+  justify-content: flex-start;
+  padding-top: 2rem;
+  user-select: none;
+}
+
+/* Título da página */
+.battle-page-title {
+  font-size: 2rem;
+  color: #93c5fd;
+  margin-bottom: 1rem;
+}
+
+/* Indicador de turno */
+.battle-page-turn-indicator {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #22c55e;
+  margin-bottom: 1rem;
+}
+
+/* Container principal */
+.battle-page-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  background-color: #1e293b;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  max-width: 1200px;
+  width: 95%;
+}
+
+/* Tabuleiro */
+.battle-page-board {
+  background-color: #1f2937;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .battle-page-board-title {
   font-size: 1.5rem;
-  margin-bottom: 10px;
+  font-weight: bold;
+  color: #93c5fd;
+  margin-bottom: 1rem;
 }
 
+/* Grid do tabuleiro */
 .battle-page-grid {
   display: grid;
-  grid-template-columns: repeat(6, 40px); /* Ajuste o número de colunas conforme necessário */
-  gap: 5px;
-  margin-top: 10px;
-}
-
-.battle-page-cell {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #ccc;
-  display: flex;
+  grid-template-columns: repeat(6, 48px);
+  gap: 2px;
   justify-content: center;
-  align-items: center;
-  background-color: #f0f0f0;
-  cursor: pointer;
 }
 
-.battle-page-cell-hit {
-  background-color: #ff4d4d; /* Vermelho para indicar acertos */
+/* Células do tabuleiro */
+.battle-page-cell {
+  width: 48px;
+  height: 48px;
+  background-color: #0c4a6e;
+  border: 1px solid #4b5563;
   color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.battle-page-cell:hover {
+  background-color: #2563eb;
+  transform: scale(1.1);
+}
+
+/* Célula atingida */
+.battle-page-cell-hit {
+  background-color: #ef4444;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+/* Célula selecionada */
+.battle-page-cell.selected {
+  background-color: #22c55e;
+  box-shadow: 0 0 10px #16a34a;
+}
+
+/* Mensagem do vencedor */
 .battle-page-winner-message {
-  font-size: 1.8rem;
-  color: green;
-  margin-top: 20px;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #22c55e;
+  text-align: center;
+  margin-top: 1rem;
 }
