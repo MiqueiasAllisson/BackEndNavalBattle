@@ -6,7 +6,6 @@ const getShips = (req, res) => {
   res.json(ships);
 };
 
-// Função para posicionar um navio
 const placeShip = (req, res) => {
   const { roomId, playerId } = req.params;
   const { row, col, orientation, shipId } = req.body;
@@ -70,7 +69,6 @@ const placeShip = (req, res) => {
   }
 };
 
-// Função para remover um navio
 const removeShip = (req, res) => {
   const { roomId, playerId } = req.params;
   const { row, col } = req.body;
@@ -98,7 +96,6 @@ const removeShip = (req, res) => {
     return res.status(400).json({ error: 'Nenhum navio encontrado na posição fornecida.' });
   }
 
-  // Encontra o navio específico que está sendo removido
   const shipToRemove = player.placedShips.find(
     (ship) =>
       ship.id === shipId &&
@@ -112,7 +109,6 @@ const removeShip = (req, res) => {
     return res.status(400).json({ error: 'Navio não encontrado na posição fornecida.' });
   }
 
-  // Remove apenas as células ocupadas pelo navio específico
   for (let i = 0; i < shipToRemove.size; i++) {
     const r = shipToRemove.orientation === 'V' ? shipToRemove.row + i : shipToRemove.row;
     const c = shipToRemove.orientation === 'H' ? shipToRemove.col + i : shipToRemove.col;
@@ -122,10 +118,7 @@ const removeShip = (req, res) => {
     }
   }
 
-  // Remove o navio da lista de navios posicionados
   player.placedShips = player.placedShips.filter((ship) => ship !== shipToRemove);
-
-  // Incrementa o número de navios restantes
   player.shipsRemaining[shipId] += 1;
 
   res.status(200).json({
@@ -153,19 +146,15 @@ const setPlayerReady = (req, res) => {
     return res.status(400).json({ error: 'Jogador inválido ou não encontrado na sala.' });
   }
 
-  player.ready = true; // Marca o jogador como pronto
+  player.ready = true;
 
-  // Verifica se todos os jogadores estão prontos
   const allPlayersReady = Object.values(game.players).every((p) => p.ready);
 
   if (allPlayersReady) {
-    game.status = 'ready'; // Atualiza o status do jogo para "ready"
+    game.status = 'ready';
   }
 
   res.status(200).json({ message: 'Jogador marcado como pronto.', status: game.status });
 };
-
-
-
 
 module.exports = { placeShip, games, removeShip, getShips, setPlayerReady };

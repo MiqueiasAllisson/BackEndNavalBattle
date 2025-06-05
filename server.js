@@ -15,24 +15,13 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// ADICIONE ESTE MIDDLEWARE DE DEBUG
-app.use((req, res, next) => {
-  console.log(`📡 ${req.method} ${req.originalUrl}`);
-  next();
-});
-
-// Rotas
 app.use('/api/game', gameRoutes);
 
-// Resto do código...
 const games = {};
 
 io.on('connection', (socket) => {
-  console.log(`Jogador conectado: ${socket.id}`);
-  // ... resto do código socket
+  // Código do socket.io aqui, sem logs de debug
 });
 
-const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+server.listen(PORT);

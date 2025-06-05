@@ -8,22 +8,20 @@ const initializeGame = (req, res) => {
     return res.status(400).json({ error: 'Room ID é obrigatório.' });
   }
 
-    if (!nameTeam) {
+  if (!nameTeam) {
     return res.status(400).json({ error: 'Digite um nome para sua Equipe.' });
   }
-
 
   if (games[roomId]) {
     return res.status(400).json({ error: 'Jogo já existe para esta sala.' });
   }
 
-  // Cria a sala com o jogador 1 automaticamente
   games[roomId] = {
     players: {
       1: { id: 1, namePlayer: nameTeam, board: createBoard(), shipsPlaced: false },
     },
     readyToStart: false,
-    currentTurn: null, // Define-se somente quando ambos os jogadores estiverem prontos
+    currentTurn: null,
   };
 
   res.status(200).json({ message: 'Sala criada com sucesso.', playerId: 1, message: "Jogador:", nameTeam });
@@ -34,7 +32,7 @@ const joinGame = (req, res) => {
 
   if (!roomId) {
     return res.status(400).json({ error: 'Room ID é obrigatório.' });
-    }
+  }
 
   if (!nameTeam) {
     return res.status(400).json({ error: 'Digite um nome para sua Equipe.' });
@@ -46,18 +44,13 @@ const joinGame = (req, res) => {
     return res.status(404).json({ error: 'Sala não encontrada.' });
   }
 
-  // Verifica se a sala já está cheia
   if (game.players[2]) {
     return res.status(400).json({ error: 'Sala já está cheia.' });
   }
 
-  // Adiciona o jogador 2 automaticamente
   game.players[2] = { id: 2, namePlayer: nameTeam, board: createBoard(), shipsPlaced: false };
 
   res.status(200).json({ message: 'Jogador 2 entrou na sala.', playerId: 2, message: "Jogador:", nameTeam});
 };
-
-
-
 
 module.exports = { initializeGame, joinGame };
