@@ -124,3 +124,14 @@
   color: #ff0000; /* Vermelho para destacar */
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
+
+.battle-page-cell-clickable {
+  background-color: #e0f7fa;
+  border: 2px solid #00acc1;
+}
+
+.battle-page-cell-clickable:hover {
+  background-color: #b2ebf2;
+  transform: scale(1.05);
+}
+

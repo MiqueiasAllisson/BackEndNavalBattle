@@ -1,6 +1,4 @@
-
-const { games} = require('./initialGameController');
-
+const { games } = require('./initialGameController');
 
 const startBattle = (req, res) => {
   const { roomId } = req.params;
@@ -10,174 +8,192 @@ const startBattle = (req, res) => {
   }
 
   const game = games[roomId];
+  const playerKeys = Object.keys(game.players);
+  
+  console.log('=== INICIANDO BATALHA ===');
+  console.log('Room ID:', roomId);
+  console.log('Players encontrados:', playerKeys);
+  console.log('Dados dos players:', game.players);
 
-  // Configura o turno inicial e garante que os dados básicos do jogo estão prontos
-  game.currentTurn = 'player1'; // Jogador 1 começa
+  // Configura o turno inicial
+  game.currentTurn = playerKeys[0];
   game.winner = null;
+  game.status = 'in-progress';
 
-  res.status(200).json({ message: 'Batalha iniciada!', currentTurn: game.currentTurn });
-};
-
-const handleAttack = (req, res) => {
-  const { roomId, playerId } = req.params;
-  const { row, col } = req.body;
-
-  const game = games[roomId];
-  if (!game) {
-    return res.status(404).json({ error: 'Sala não encontrada.' });
-  }
-
-  if (game.currentTurn !== playerId) {
-    return res.status(403).json({ error: 'Não é sua vez!' });
-  }
-
-  const opponent = playerId === 'player1' ? 'player2' : 'player1';
-  const opponentBoard = game.players[opponent].board;
-  const opponentHits = game.players[opponent].hits;
-
-  // Verifica se o ataque foi um acerto
-  if (opponentBoard[row][col] === 'ship') {
-    opponentHits.push({ row, col });
-    opponentBoard[row][col] = 'hit'; // Marca como atingido
-
-    // Verifica se todos os navios do oponente foram destruídos
-    const allShipsDestroyed = opponentBoard.every((rowArray) =>
-      rowArray.every((cell) => cell !== 'ship')
-    );
-
-    if (allShipsDestroyed) {
-      game.winner = playerId; // Define o vencedor
-      return res.status(200).json({ winner: playerId });
+  // Inicializa hits para cada jogador
+  playerKeys.forEach(playerId => {
+    if (!game.players[playerId].hits) {
+      game.players[playerId].hits = [];
     }
-  } else {
-    opponentBoard[row][col] = 'miss'; // Marca como erro
-  }
+    console.log(`Player ${playerId} board:`, game.players[playerId].board);
+  });
 
-  // Alterna o turno
-  game.currentTurn = opponent;
+  console.log('Turno inicial definido como:', game.currentTurn);
 
-  res.status(200).json({
-    message: 'Ataque processado com sucesso!',
+  res.status(200).json({ 
+    message: 'Batalha iniciada!', 
     currentTurn: game.currentTurn,
-    hits: opponentHits,
+    players: game.players,
+    status: 'in-progress'
   });
 };
-
 
 const getGameState = (req, res) => {
   const { roomId } = req.params;
 
-  console.log('Recebendo roomId:', roomId); // Log para depuração
+  console.log('=== GET GAME STATE ===');
+  console.log('Room ID solicitado:', roomId);
 
   const game = games[roomId];
   if (!game) {
-    console.log('Sala não encontrada:', roomId); // Log para depuração
+    console.log('❌ Sala não encontrada:', roomId);
+    console.log('Salas disponíveis:', Object.keys(games));
     return res.status(404).json({ error: 'Sala não encontrada.' });
   }
 
+  console.log('✅ Jogo encontrado');
+  console.log('Current Turn:', game.currentTurn);
+  console.log('Status:', game.status);
+  console.log('Players:', Object.keys(game.players));
+  
+  // Log detalhado dos players
+  Object.keys(game.players).forEach(playerId => {
+    const player = game.players[playerId];
+    console.log(`Player ${playerId}:`, {
+      name: player.namePlayer,
+      boardSize: player.board ? `${player.board.length}x${player.board[0]?.length}` : 'undefined',
+      hitsCount: player.hits ? player.hits.length : 0
+    });
+  });
+
   res.status(200).json({
-    status: game.status || 'waiting', // Retorna o status do jogo
-    players: game.players || {}, // Retorna os jogadores na sala
+    status: game.status || 'waiting',
+    players: game.players || {},
+    currentTurn: game.currentTurn || null,
+    winner: game.winner || null
   });
 };
-
-
-
-
-const initializeBattle = (roomId) => {
-  const game = games[roomId];
-  if (!game) {
-    throw new Error('Sala não encontrada.');
-  }
-
-  if (game.status !== 'ready') {
-    throw new Error('O jogo ainda não está pronto para começar.');
-  }
-
-  game.status = 'in-progress';
-  game.turn = Object.keys(game.players)[0]; // Define o primeiro jogador como o inicial
-  Object.values(game.players).forEach((player) => {
-    player.hits = createBoard(); // Cria um tabuleiro para registrar os ataques
-  });
-};
-
-
-// Função para processar um ataque
-const attack = (req, res) => {
+const handleAttack = (req, res) => {
   const { roomId, playerId } = req.params;
   const { row, col } = req.body;
 
-  if (!roomId || !playerId || row === undefined || col === undefined) {
-    return res.status(400).json({ error: 'Room ID, Player ID, row e col são obrigatórios.' });
-  }
-
+  console.log('=== DEBUG COMPLETO ===');
+  console.log('Room ID:', roomId);
+  console.log('Player ID que está atacando:', playerId, '(tipo:', typeof playerId, ')');
+  
   const game = games[roomId];
   if (!game) {
     return res.status(404).json({ error: 'Sala não encontrada.' });
   }
 
-  if (game.status !== 'in-progress') { // Verifica se o jogo está em andamento
-    return res.status(400).json({ error: 'O jogo ainda não começou.' });
+  // 🔍 DEBUG CRÍTICO - VAMOS VER QUEM SÃO OS JOGADORES
+  const playerKeys = Object.keys(game.players);
+  console.log('🎮 TODOS OS JOGADORES NA SALA:');
+  playerKeys.forEach(key => {
+    console.log(`  - Jogador ${key} (tipo: ${typeof key}): ${game.players[key].namePlayer}`);
+  });
+  
+  console.log('🎯 Current turn:', game.currentTurn, '(tipo:', typeof game.currentTurn, ')');
+  
+  // 🔍 ENCONTRAR OPONENTE
+  const playerIdStr = String(playerId);
+  console.log('🔄 Procurando oponente para:', playerIdStr);
+  
+  const opponent = playerKeys.find(key => {
+    const keyStr = String(key);
+    console.log(`  - Comparando "${keyStr}" !== "${playerIdStr}" = ${keyStr !== playerIdStr}`);
+    return keyStr !== playerIdStr;
+  });
+  
+  console.log('👤 OPONENTE ENCONTRADO:', opponent);
+  console.log('🆚 RESUMO:');
+  console.log(`  - Atacante: ${playerIdStr} (${game.players[playerIdStr]?.namePlayer})`);
+  console.log(`  - Defensor: ${opponent} (${game.players[opponent]?.namePlayer})`);
+  
+  if (!opponent) {
+    console.log('❌ ERRO: Oponente não encontrado!');
+    return res.status(400).json({ error: 'Oponente não encontrado.' });
   }
 
-  const currentPlayer = game.turn;
-  if (currentPlayer !== playerId) {
-    return res.status(400).json({ error: 'Não é o seu turno.' });
+
+
+  const opponentBoard = game.players[opponent].board;
+  const opponentHits = game.players[opponent].hits || [];
+
+  // Verifica se já foi atacado
+  const alreadyAttacked = opponentHits.find(hit => hit.row === row && hit.col === col);
+  if (alreadyAttacked) {
+    return res.status(400).json({ error: 'Posição já atacada!' });
   }
 
-  const opponentId = Object.keys(game.players).find((id) => id !== playerId);
-  const opponent = game.players[opponentId];
+  let hitResult;
+  const cellValue = opponentBoard[row][col];
+  
+  if (cellValue === 'ship' || cellValue === 1 || cellValue === 2 || cellValue === 3) {
+    // ✅ APENAS REGISTRA O HIT - NÃO MODIFICA O BOARD ORIGINAL
+    opponentHits.push({ row, col, status: 'hit' });
+    hitResult = 'hit';
+    console.log('🎯 ACERTO!');
 
-  if (!opponent || !opponent.board) {
-    return res.status(400).json({ error: 'O tabuleiro do oponente não foi inicializado.' });
-  }
+    // ✅ VERIFICAR VITÓRIA CONTANDO NAVIOS RESTANTES
+    let totalShips = 0;
+    let shipsHit = 0;
+    
+    for (let r = 0; r < opponentBoard.length; r++) {
+      for (let c = 0; c < opponentBoard[r].length; c++) {
+        const cell = opponentBoard[r][c];
+        if (cell === 'ship' || cell === 1 || cell === 2 || cell === 3) {
+          totalShips++;
+          // Verifica se esta posição foi atingida
+          const wasHit = opponentHits.find(hit => 
+            hit.row === r && hit.col === c && hit.status === 'hit'
+          );
+          if (wasHit) {
+            shipsHit++;
+          }
+        }
+      }
+    }
 
-  const opponentBoard = opponent.board;
-  const playerHits = game.players[playerId].hits;
-
-  // Verifica se a célula já foi atacada
-  if (playerHits[row][col] !== 0) {
-    return res.status(400).json({ error: 'Essa célula já foi atacada.' });
-  }
-
-  // Processa o ataque
-  if (opponentBoard[row][col] !== 0) {
-    playerHits[row][col] = 1; // Marca como acerto
-    opponentBoard[row][col] = -1; // Marca o navio como atingido
-    checkForWinner(game, opponentId); // Verifica se o jogo terminou
+    if (totalShips === shipsHit) {
+      game.winner = game.players[playerId].namePlayer || playerId;
+      game.status = 'finished';
+      console.log('🏆 VITÓRIA!', game.winner);
+      return res.status(200).json({ 
+        winner: game.winner,
+        players: game.players,
+        currentTurn: game.currentTurn,
+        gameOver: true,
+        hitResult: hitResult,
+        targetRow: row,
+        targetCol: col
+      });
+    }
+    
+    // Se acertou, continua no mesmo turno
+    // game.currentTurn permanece o mesmo
   } else {
-    playerHits[row][col] = -1; // Marca como erro
+    // ✅ MISS - APENAS REGISTRA, NÃO MODIFICA BOARD
+    opponentHits.push({ row, col, status: 'miss' });
+    hitResult = 'miss';
+    console.log('💧 ÁGUA!');
+    
+    // Só troca turno se errou
+    game.currentTurn = opponent;
   }
 
-  // Alterna o turno
-  game.turn = opponentId;
+  console.log('Próximo turno:', game.currentTurn);
 
   res.status(200).json({
-    message: `Ataque realizado na posição (${row}, ${col}).`,
-    hit: opponentBoard[row][col] !== 0,
-    board: playerHits,
+    message: 'Ataque processado!',
+    currentTurn: game.currentTurn,
+    players: game.players,
+    winner: game.winner,
+    hitResult: hitResult,
+    targetRow: row,
+    targetCol: col,
+    gameOver: false
   });
 };
 
-
-// Função para verificar se um jogador perdeu todos os navios
-const checkForWinner = (game, opponentId) => {
-  const opponentBoard = game.players[opponentId].board;
-
-  for (let row = 0; row < opponentBoard.length; row++) {
-    for (let col = 0; col < opponentBoard[row].length; col++) {
-      if (opponentBoard[row][col] > 0) {
-        return; // Ainda há navios não atingidos
-      }
-    }
-  }
-
-  // Se todos os navios foram destruídos, define o vencedor
-  game.status = 'finished';
-  game.winner = Object.keys(game.players).find((id) => id !== opponentId);
-};
-
-
-
-
-module.exports = { attack, startBattle,handleAttack, getGameState };
+module.exports = { startBattle, handleAttack, getGameState };

@@ -6,25 +6,24 @@ require('../controllers/initialGameController');
 const { initializeGame, joinGame } = 
 require('../controllers/lobbyGame');
 
-const { attack, startBattle, getGameState, handleAttack } = 
+const { startBattle, getGameState, handleAttack } = 
 require('../controllers/gameController');
 
 const router = express.Router();
 
-
+// ========== ROTAS DE LOBBY ==========
 router.post('/initialize', initializeGame);
 router.post('/joinGame', joinGame);
 
+// ========== ROTAS DE CONFIGURAÇÃO DE NAVIOS ==========
 router.post('/:roomId/player/:playerId/placeShips', placeShip);
 router.post('/:roomId/player/:playerId/setPlayerReady', setPlayerReady);
 router.delete('/:roomId/player/:playerId/removeShip', removeShip);
+router.get('/:roomId/player/:playerId/ships', getShips);
 
-router.get('/:roomId', getShips);
-router.get('/:roomId/state', getGameState);
-
-
+// ========== ROTAS DE BATALHA ==========
 router.post('/:roomId/startBattle', startBattle);
-router.post('/:roomId/player/:playerId/', handleAttack);
-router.post('/:roomId/player/:playerId/attack', attack);
+router.get('/:roomId/state', getGameState);
+router.post('/:roomId/player/:playerId/attack', handleAttack);
 
 module.exports = router;
